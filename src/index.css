@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  /* Colors are permanently locked to the bright academic theme */
+  --color-paper: #F9FAFA;
+  --color-ink: #14181C;
+  --color-slate: #6B7280;
+  --color-focus: #2F5DE3;
+  --color-halo: #EAF0FE;
+
+  --font-display: "Newsreader", serif;
+  --font-body: "Public Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}
+
+/* Removed the transition-colors property since themes will no longer switch */
+body {
+  @apply bg-paper text-ink font-body antialiased;
+}
+
+h1, h2, h3 {
+  @apply font-display;
+}
