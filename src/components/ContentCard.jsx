@@ -75,8 +75,10 @@ export default function ContentCard({ item, score, onInteract, onToggleLike, onT
         
         {/* flex-1 pushes the action buttons to the absolute bottom, keeping cards uniform */}
         <div className="flex-1 mb-4">
-          <p className="text-sm text-slate leading-relaxed line-clamp-6">{item.description}</p>
-          {item.description?.length > 250 && (
+          <p className="text-sm text-slate leading-relaxed line-clamp-6">
+            {item.ai_summary || item.description}
+          </p>
+          {(item.ai_summary || item.description?.length > 250) && (
             <span className="text-focus text-sm font-medium hover:underline mt-1 inline-block">Read more...</span>
           )}
         </div>
@@ -116,7 +118,10 @@ export default function ContentCard({ item, score, onInteract, onToggleLike, onT
                 ))}
               </div>
               <h2 className="font-display text-3xl text-ink mb-6 leading-tight pr-8">{item.title}</h2>
-              <p className="text-base text-slate leading-relaxed mb-8 whitespace-pre-wrap">{item.description}</p>
+              {item.ai_summary && (
+                <p className="text-sm text-focus font-mono mb-4 border-l-2 border-focus/30 pl-3 py-1">{item.ai_summary}</p>
+              )}
+              <p className="text-base text-slate leading-relaxed mb-8 whitespace-pre-wrap">{item.description}</p>   
             </div>
 
             {/* Fixed Footer Area */}
