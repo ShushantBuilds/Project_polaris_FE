@@ -2,6 +2,7 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
+import Documentation from './pages/Documentation';
 
 const LandingPage = lazy(() => import('./pages/LandingPage'))
 const Login = lazy(() => import('./pages/Login'))
@@ -41,6 +42,7 @@ function App() {
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPassword /></PublicOnlyRoute>} />
           <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
+          <Route path="/documentation" element={<Documentation />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

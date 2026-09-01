@@ -151,11 +151,12 @@ export default function LandingPage() {
       <footer className="z-20 w-full px-8 py-6 border-t border-slate/10 flex flex-col md:flex-row items-center justify-between text-slate font-mono text-xs uppercase tracking-wide mt-auto bg-transparent">
         <p>© {new Date().getFullYear()} Project Polaris. Engineered for academic research.</p>
         <div className="flex gap-8 mt-4 md:mt-0 items-center">
-          <a href="#" className="hover:text-ink transition-colors">Documentation</a>
-          <a href="#" className="hover:text-ink transition-colors">GitHub</a>
+          <Link to="/documentation" className="hover:text-ink transition-colors">Documentation</Link>
+          <a href="https://github.com/ShushantBuilds" target="_blank" rel="noopener noreferrer" className="hover:text-ink transition-colors">GitHub</a>
+          
           <span className="flex items-center gap-2 bg-slate/10 px-3 py-1.5 rounded-full">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            PostgreSQL Online
+            Engine Online
           </span>
         </div>
       </footer>
