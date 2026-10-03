@@ -10,8 +10,7 @@ const CATEGORY_LABELS = { GENRE: 'Topics', FORMAT: 'Formats', DIFFICULTY: 'Diffi
 export default function Onboarding() {
   const [selected, setSelected] = useState(new Set())
   const navigate = useNavigate()
-
-  const{user, setUser} = useAuth()
+  const { user, setUser } = useAuth()
 
   const { data: tags, isLoading: tagsLoading } = useQuery({ queryKey: ['tags'], queryFn: getTags })
   const { data: profile } = useQuery({ queryKey: ['myProfile'], queryFn: getMyProfile })
@@ -42,53 +41,74 @@ export default function Onboarding() {
   }, {})
 
   if (tagsLoading) {
-    return <div className="min-h-screen flex items-center justify-center text-slate">Loading…</div>
+    return (
+      <div className="min-h-screen bg-paper flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-focus border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-16">
-      <div className="w-full max-w-lg">
-        <h1 className="text-3xl mb-2">Coming into focus</h1>
-        <p className="text-slate mb-8">Pick a few things you're into — your feed sharpens from here.</p>
+    <div className="min-h-screen bg-paper flex flex-col relative overflow-hidden text-ink font-body transition-colors duration-700">
+      
+      <div className="absolute inset-0 z-0 pointer-events-none">
+         <div className="absolute top-1/4 right-1/4 w-[600px] h-[600px] bg-halo rounded-full mix-blend-multiply filter blur-[120px] opacity-70"></div>
+      </div>
 
-        <div className="space-y-6">
-          {Object.entries(grouped).map(([category, categoryTags]) => (
-            <div key={category}>
-              <h2 className="text-xs uppercase tracking-wide text-slate font-mono mb-2">
-                {CATEGORY_LABELS[category] || category}
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {categoryTags.map((tag) => {
-                  const isSelected = selected.has(tag.id)
-                  return (
-                    <button
-                      key={tag.id} type="button" onClick={() => toggleTag(tag.id)}
-                      className={`px-3 py-1.5 rounded-full text-sm font-mono border transition ${
-                        isSelected ? 'bg-halo border-focus text-focus' : 'border-slate/30 text-slate hover:border-slate/60'
-                      }`}
-                    >
-                      {tag.name}
-                    </button>
-                  )
-                })}
+      <div className="z-10 flex-1 flex items-center justify-center px-6 py-16">
+        <div className="w-full max-w-2xl bg-white/40 backdrop-blur-xl border border-slate/20 rounded-3xl p-8 md:p-12 shadow-sm">
+          
+          <div className="text-center mb-10">
+            <h1 className="font-display text-4xl md:text-5xl mb-3 tracking-tight">Coming into focus</h1>
+            <p className="text-slate font-body text-base leading-relaxed">
+              Pick a few things you're into — your feed sharpens from here.
+            </p>
+          </div>
+
+          <div className="space-y-8">
+            {Object.entries(grouped).map(([category, categoryTags]) => (
+              <div key={category}>
+                <h2 className="text-xs uppercase tracking-widest text-slate font-mono mb-4 border-b border-slate/10 pb-2">
+                  {CATEGORY_LABELS[category] || category}
+                </h2>
+                <div className="flex flex-wrap gap-2.5">
+                  {categoryTags.map((tag) => {
+                    const isSelected = selected.has(tag.id)
+                    return (
+                      <button
+                        key={tag.id} type="button" onClick={() => toggleTag(tag.id)}
+                        className={`px-4 py-2 rounded-full text-xs font-mono tracking-wide transition-all duration-300 border ${
+                          isSelected 
+                            ? 'bg-ink border-ink text-white shadow-md -translate-y-0.5' 
+                            : 'bg-white/60 backdrop-blur-sm border-slate/20 text-slate hover:border-focus hover:text-focus'
+                        }`}
+                      >
+                        {tag.name}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          {mutation.isError && <p className="text-sm text-red-500 font-medium mt-6 text-center">Something went wrong — try again.</p>}
+
+          <div className="mt-12 flex flex-col items-center gap-4">
+            <button
+              type="button" disabled={selected.size === 0 || mutation.isPending || !profile}
+              onClick={() => mutation.mutate()}
+              className="w-full max-w-sm bg-focus text-white rounded-full py-4 font-body font-medium hover:bg-ink hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:hover:translate-y-0 disabled:bg-slate"
+            >
+              {mutation.isPending ? 'Sharpening…' : 'Sharpen my feed'}
+            </button>
+
+            <button type="button" onClick={() => navigate('/feed')} className="text-slate text-sm hover:text-ink transition-colors">
+              Skip for now
+            </button>
+          </div>
+
         </div>
-
-        {mutation.isError && <p className="text-sm text-red-600 mt-4">Something went wrong — try again.</p>}
-
-        <button
-          type="button" disabled={selected.size === 0 || mutation.isPending || !profile}
-          onClick={() => mutation.mutate()}
-          className="w-full bg-focus text-white rounded-md py-2 font-medium hover:opacity-90 disabled:opacity-50 transition mt-8"
-        >
-          {mutation.isPending ? 'Sharpening…' : 'Sharpen my feed →'}
-        </button>
-
-        <button type="button" onClick={() => navigate('/feed')} className="w-full text-slate text-sm mt-3 hover:text-ink transition">
-          Skip for now
-        </button>
       </div>
     </div>
   )

@@ -1,4 +1,3 @@
-// src/pages/Register.jsx
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import ReCAPTCHA from 'react-google-recaptcha'
@@ -48,7 +47,7 @@ export default function Register() {
     }
   }
 
-    const handleOtpChange = async (e) => {
+  const handleOtpChange = async (e) => {
     const value = e.target.value.replace(/\D/g, '').slice(0, 6)
     setOtpCode(value)
     setOtpError('')
@@ -73,56 +72,58 @@ export default function Register() {
   }
 
   const handleSubmit = async (e) => {
-  e.preventDefault()
-  setError('')
+    e.preventDefault()
+    setError('')
 
-  if (!emailVerified) {
-    setError('Please verify your email first.')
-    return
-  }
-  if (formData.password !== formData.confirmPassword) {
-    setError("Passwords don't match.")
-    return
-  }
-  const recaptchaToken = recaptchaRef.current?.getValue()
-  if (!recaptchaToken) {
-    setError('Please complete the captcha.')
-    return
+    if (!emailVerified) {
+      setError('Please verify your email first.')
+      return
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords don't match.")
+      return
+    }
+    const recaptchaToken = recaptchaRef.current?.getValue()
+    if (!recaptchaToken) {
+      setError('Please complete the captcha.')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await register({
+        email: formData.email,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        phone_number: formData.phoneNumber,
+        password: formData.password,
+        confirm_password: formData.confirmPassword,
+        recaptcha_token: recaptchaToken,
+      })
+    } catch (err) {
+      const data = err.response?.data || {}
+      const firstError = Object.values(data)[0]
+      setError(Array.isArray(firstError) ? firstError[0] : firstError || 'Something went wrong.')
+      recaptchaRef.current?.reset()
+    } finally {
+      setSubmitting(false)
+    }
   }
 
-  setSubmitting(true)
-  try {
-    await register({
-      email: formData.email,
-      first_name: formData.firstName,
-      last_name: formData.lastName,
-      phone_number: formData.phoneNumber,
-      password: formData.password,
-      confirm_password: formData.confirmPassword,
-      recaptcha_token: recaptchaToken,
-    })
-  } catch (err) {
-    const data = err.response?.data || {}
-    const firstError = Object.values(data)[0]
-    setError(Array.isArray(firstError) ? firstError[0] : firstError || 'Something went wrong.')
-    recaptchaRef.current?.reset()
-  } finally {
-    setSubmitting(false)
-  }
-}
-
-useEffect(() => {
-  if (cooldown <= 0) return
-  const timer = setTimeout(() => setCooldown((c) => c - 1), 1000)
-  return () => clearTimeout(timer)
-}, [cooldown])
+  useEffect(() => {
+    if (cooldown <= 0) return
+    const timer = setTimeout(() => setCooldown((c) => c - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [cooldown])
 
 
   return (
     <div className="min-h-screen bg-paper flex flex-col relative overflow-hidden text-ink font-body transition-colors duration-700">
       
+      {/* Unified Dual Ambient Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-         <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-halo rounded-full mix-blend-multiply filter blur-[100px] opacity-70"></div>
+         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-halo rounded-full mix-blend-multiply filter blur-[120px] opacity-70"></div>
+         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-focus rounded-full mix-blend-multiply filter blur-[120px] opacity-10"></div>
       </div>
 
       <nav className="z-20 w-full px-8 py-6 flex items-center justify-between">
@@ -133,7 +134,7 @@ useEffect(() => {
       </nav>
 
       <div className="z-10 flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md bg-white/40 backdrop-blur-xl border border-slate/20 rounded-3xl p-8 shadow-sm">
+        <div className="w-full max-w-md bg-white/40 backdrop-blur-xl border border-slate/20 rounded-3xl p-8 md:p-10 shadow-sm">
           
           <h1 className="font-display text-4xl mb-2 tracking-tight">Create your account</h1>
           <p className="text-slate mb-8 font-body text-sm leading-relaxed">
@@ -175,15 +176,15 @@ useEffect(() => {
               </div>
 
               {otpSent && !emailVerified && (
-                <div className="mt-3">
+                <div className="mt-3 animate-fade-in">
                   <input
                     type="text" inputMode="numeric" maxLength={6} value={otpCode} onChange={handleOtpChange}
                     placeholder="Enter 6-digit code" disabled={verifyingOtp}
                     className="w-full border border-slate/20 rounded-xl px-4 py-3 bg-white/60 backdrop-blur-sm text-center font-mono tracking-widest focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all"
                   />
-                  <div className="flex justify-between items-center mt-1.5">
-                    {otpError && <p className="text-xs text-red-500">{otpError}</p>}
-                    <button type="button" onClick={handleEditEmail} className="text-xs text-slate hover:text-ink ml-auto">
+                  <div className="flex justify-between items-center mt-2">
+                    {otpError ? <p className="text-xs text-red-500">{otpError}</p> : <div></div>}
+                    <button type="button" onClick={handleEditEmail} className="text-xs text-slate hover:text-ink ml-auto transition-colors">
                       Wrong email? Edit
                     </button>
                   </div>
@@ -197,7 +198,6 @@ useEffect(() => {
                 className="w-full border border-slate/20 rounded-xl px-4 py-3 bg-white/60 backdrop-blur-sm focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all" />
             </div>
 
-            {/* Primary Password Field with Toggle */}
             <div>
               <label className="block font-mono text-xs tracking-widest uppercase text-slate mb-2" htmlFor="password">Password</label>
               <div className="relative">
@@ -207,8 +207,7 @@ useEffect(() => {
                   className="w-full border border-slate/20 rounded-xl pl-4 pr-12 py-3 bg-white/60 backdrop-blur-sm focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all" 
                 />
                 <button 
-                  type="button" 
-                  onClick={() => setShowPassword(!showPassword)}
+                  type="button" onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-slate hover:text-ink transition-colors focus:outline-none"
                 >
                   {showPassword ? (
@@ -221,7 +220,6 @@ useEffect(() => {
               <p className="font-mono text-[10px] text-slate mt-2 tracking-wide uppercase">At least 8 characters.</p>
             </div>
 
-            {/* Confirm Password Field with Toggle */}
             <div>
               <label className="block font-mono text-xs tracking-widest uppercase text-slate mb-2" htmlFor="confirmPassword">Confirm password</label>
               <div className="relative">
@@ -231,8 +229,7 @@ useEffect(() => {
                   className="w-full border border-slate/20 rounded-xl pl-4 pr-12 py-3 bg-white/60 backdrop-blur-sm focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all" 
                 />
                 <button 
-                  type="button" 
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-slate hover:text-ink transition-colors focus:outline-none"
                 >
                   {showConfirmPassword ? (
@@ -248,7 +245,7 @@ useEffect(() => {
               <ReCAPTCHA ref={recaptchaRef} sitekey={RECAPTCHA_SITE_KEY} />
             </div>
 
-            {error && <p className="text-sm text-red-500 font-medium">{error}</p>}
+            {error && <p className="text-sm text-red-500 font-medium text-center">{error}</p>}
 
             <button type="submit" disabled={submitting || !emailVerified}
               className="w-full bg-ink text-paper rounded-full py-4 font-body font-medium hover:bg-focus hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:bg-ink">
