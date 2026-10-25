@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { searchContentItems, getDailySearchSuggestions, toggleInteraction, voteOnItem } from '../api/contentItems';
 import ContentCard from '../components/ContentCard';
 import ReadingModal from '../components/ReadingModal';
+import ResearchAssistant from '../components/ResearchAssistant';
 
 const FALLBACK_SUGGESTIONS = ['Transformer Models', 'CRISPR-Cas9', 'Quantum Cryptography', 'Behavioral Economics'];
 
@@ -306,6 +307,8 @@ export default function LandingPage() {
         onToggleSave={handleToggleSave}
         onVote={handleVote}
       />
+
+      <ResearchAssistant />
 
     </div>
   );

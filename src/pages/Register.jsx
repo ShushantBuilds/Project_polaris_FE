@@ -116,9 +116,9 @@ export default function Register() {
     return () => clearTimeout(timer)
   }, [cooldown])
 
-
   return (
-    <div className="min-h-screen bg-paper flex flex-col relative overflow-hidden text-ink font-body transition-colors duration-700">
+    // Locked viewport height (h-screen) with a scroll fallback just for mobile devices
+    <div className="h-screen bg-paper flex flex-col relative overflow-hidden text-ink font-body transition-colors duration-700">
       
       {/* Unified Dual Ambient Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
@@ -126,137 +126,153 @@ export default function Register() {
          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-focus rounded-full mix-blend-multiply filter blur-[120px] opacity-10"></div>
       </div>
 
-      <nav className="z-20 w-full px-8 py-6 flex items-center justify-between">
+      <nav className="z-20 shrink-0 w-full px-8 py-6 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 hover:opacity-70 transition-opacity">
           <span className="text-2xl text-focus leading-none">❈</span>
           <span className="font-display text-xl tracking-tight font-medium">Polaris</span>
         </Link>
       </nav>
 
-      <div className="z-10 flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md bg-white/40 backdrop-blur-xl border border-slate/20 rounded-3xl p-8 md:p-10 shadow-sm">
+      {/* Main Container - allows internal scrolling on mobile, perfectly centered on desktop */}
+      <div className="z-10 flex-1 flex flex-col items-center justify-center px-6 pb-12 overflow-y-auto md:overflow-visible">
+        
+        {/* Widened card to max-w-4xl to accommodate the two-column layout */}
+        <div className="w-full max-w-4xl bg-white/40 backdrop-blur-xl border border-slate/20 rounded-3xl p-8 md:p-10 shadow-sm flex flex-col">
           
-          <h1 className="font-display text-4xl mb-2 tracking-tight">Create your account</h1>
-          <p className="text-slate mb-8 font-body text-sm leading-relaxed">
-            A few things you like, and we'll take it from there.
-          </p>
+          <div className="mb-8 text-center md:text-left border-b border-slate/10 pb-6">
+            <h1 className="font-display text-4xl mb-2 tracking-tight">Create your account</h1>
+            <p className="text-slate font-body text-sm leading-relaxed">
+              A few things you like, and we'll take it from there.
+            </p>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
+          {/* Form splits into 2 columns on desktop (md:grid-cols-2) */}
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+            
+            {/* LEFT COLUMN: Personal Details & Email Verification */}
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-mono text-xs tracking-widest uppercase text-slate mb-2" htmlFor="firstName">First name</label>
+                  <input id="firstName" name="firstName" value={formData.firstName} onChange={handleChange} required
+                    className="w-full border border-slate/20 rounded-xl px-4 py-3 bg-white/60 backdrop-blur-sm focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all" />
+                </div>
+                <div>
+                  <label className="block font-mono text-xs tracking-widest uppercase text-slate mb-2" htmlFor="lastName">Last name</label>
+                  <input id="lastName" name="lastName" value={formData.lastName} onChange={handleChange} required
+                    className="w-full border border-slate/20 rounded-xl px-4 py-3 bg-white/60 backdrop-blur-sm focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all" />
+                </div>
+              </div>
+
               <div>
-                <label className="block font-mono text-xs tracking-widest uppercase text-slate mb-2" htmlFor="firstName">First name</label>
-                <input id="firstName" name="firstName" value={formData.firstName} onChange={handleChange} required
+                <label className="block font-mono text-xs tracking-widest uppercase text-slate mb-2" htmlFor="phoneNumber">Phone number</label>
+                <input id="phoneNumber" name="phoneNumber" type="tel" value={formData.phoneNumber} onChange={handleChange} required
                   className="w-full border border-slate/20 rounded-xl px-4 py-3 bg-white/60 backdrop-blur-sm focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all" />
               </div>
-              <div>
-                <label className="block font-mono text-xs tracking-widest uppercase text-slate mb-2" htmlFor="lastName">Last name</label>
-                <input id="lastName" name="lastName" value={formData.lastName} onChange={handleChange} required
-                  className="w-full border border-slate/20 rounded-xl px-4 py-3 bg-white/60 backdrop-blur-sm focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all" />
-              </div>
-            </div>
 
-            <div>
-              <label className="block font-mono text-xs tracking-widest uppercase text-slate mb-2" htmlFor="email">Email</label>
-              <div className="flex gap-2">
-                <input
-                  id="email" name="email" type="email" value={formData.email} onChange={handleChange}
-                  required disabled={otpSent}
-                  className="flex-1 border border-slate/20 rounded-xl px-4 py-3 bg-white/60 backdrop-blur-sm focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all disabled:opacity-70"
-                />
-                {!emailVerified ? (
-                  <button
-                    type="button" onClick={handleGetOtp} disabled={sendingOtp || cooldown > 0 || !formData.email}
-                    className="shrink-0 bg-ink text-paper rounded-xl px-5 font-mono text-xs uppercase tracking-wide hover:bg-focus transition disabled:opacity-50"
-                  >
-                    {sendingOtp ? '…' : cooldown > 0 ? `${cooldown}s` : otpSent ? 'Resend' : 'Get OTP'}
-                  </button>
-                ) : (
-                  <span className="shrink-0 flex items-center gap-1 text-focus text-xs font-mono px-3">✓ Verified</span>
+              <div>
+                <label className="block font-mono text-xs tracking-widest uppercase text-slate mb-2" htmlFor="email">Email Verification</label>
+                <div className="flex gap-2">
+                  <input
+                    id="email" name="email" type="email" value={formData.email} onChange={handleChange}
+                    required disabled={otpSent}
+                    className="flex-1 border border-slate/20 rounded-xl px-4 py-3 bg-white/60 backdrop-blur-sm focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all disabled:opacity-70"
+                  />
+                  {!emailVerified ? (
+                    <button
+                      type="button" onClick={handleGetOtp} disabled={sendingOtp || cooldown > 0 || !formData.email}
+                      className="shrink-0 bg-ink text-paper rounded-xl px-5 font-mono text-xs uppercase tracking-wide hover:bg-focus transition disabled:opacity-50"
+                    >
+                      {sendingOtp ? '…' : cooldown > 0 ? `${cooldown}s` : otpSent ? 'Resend' : 'Get OTP'}
+                    </button>
+                  ) : (
+                    <span className="shrink-0 flex items-center gap-1 text-focus text-xs font-mono px-3">✓ Verified</span>
+                  )}
+                </div>
+
+                {otpSent && !emailVerified && (
+                  <div className="mt-3 animate-fade-in">
+                    <input
+                      type="text" inputMode="numeric" maxLength={6} value={otpCode} onChange={handleOtpChange}
+                      placeholder="Enter 6-digit code" disabled={verifyingOtp}
+                      className="w-full border border-slate/20 rounded-xl px-4 py-3 bg-white/60 backdrop-blur-sm text-center font-mono tracking-widest focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all"
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      {otpError ? <p className="text-xs text-red-500">{otpError}</p> : <div></div>}
+                      <button type="button" onClick={handleEditEmail} className="text-xs text-slate hover:text-ink ml-auto transition-colors">
+                        Wrong email? Edit
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
+            </div>
 
-              {otpSent && !emailVerified && (
-                <div className="mt-3 animate-fade-in">
-                  <input
-                    type="text" inputMode="numeric" maxLength={6} value={otpCode} onChange={handleOtpChange}
-                    placeholder="Enter 6-digit code" disabled={verifyingOtp}
-                    className="w-full border border-slate/20 rounded-xl px-4 py-3 bg-white/60 backdrop-blur-sm text-center font-mono tracking-widest focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all"
+            {/* RIGHT COLUMN: Security & Submission */}
+            <div className="space-y-5 flex flex-col h-full">
+              <div>
+                <label className="block font-mono text-xs tracking-widest uppercase text-slate mb-2" htmlFor="password">Password</label>
+                <div className="relative">
+                  <input id="password" name="password" 
+                    type={showPassword ? "text" : "password"} 
+                    value={formData.password} onChange={handleChange} required minLength={8}
+                    className="w-full border border-slate/20 rounded-xl pl-4 pr-12 py-3 bg-white/60 backdrop-blur-sm focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all" 
                   />
-                  <div className="flex justify-between items-center mt-2">
-                    {otpError ? <p className="text-xs text-red-500">{otpError}</p> : <div></div>}
-                    <button type="button" onClick={handleEditEmail} className="text-xs text-slate hover:text-ink ml-auto transition-colors">
-                      Wrong email? Edit
-                    </button>
-                  </div>
+                  <button 
+                    type="button" onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate hover:text-ink transition-colors focus:outline-none"
+                  >
+                    {showPassword ? (
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    )}
+                  </button>
                 </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block font-mono text-xs tracking-widest uppercase text-slate mb-2" htmlFor="phoneNumber">Phone number</label>
-              <input id="phoneNumber" name="phoneNumber" type="tel" value={formData.phoneNumber} onChange={handleChange} required
-                className="w-full border border-slate/20 rounded-xl px-4 py-3 bg-white/60 backdrop-blur-sm focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all" />
-            </div>
-
-            <div>
-              <label className="block font-mono text-xs tracking-widest uppercase text-slate mb-2" htmlFor="password">Password</label>
-              <div className="relative">
-                <input id="password" name="password" 
-                  type={showPassword ? "text" : "password"} 
-                  value={formData.password} onChange={handleChange} required minLength={8}
-                  className="w-full border border-slate/20 rounded-xl pl-4 pr-12 py-3 bg-white/60 backdrop-blur-sm focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all" 
-                />
-                <button 
-                  type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate hover:text-ink transition-colors focus:outline-none"
-                >
-                  {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                  )}
-                </button>
+                <p className="font-mono text-[10px] text-slate mt-2 tracking-wide uppercase">At least 8 characters.</p>
               </div>
-              <p className="font-mono text-[10px] text-slate mt-2 tracking-wide uppercase">At least 8 characters.</p>
-            </div>
 
-            <div>
-              <label className="block font-mono text-xs tracking-widest uppercase text-slate mb-2" htmlFor="confirmPassword">Confirm password</label>
-              <div className="relative">
-                <input id="confirmPassword" name="confirmPassword" 
-                  type={showConfirmPassword ? "text" : "password"} 
-                  value={formData.confirmPassword} onChange={handleChange} required
-                  className="w-full border border-slate/20 rounded-xl pl-4 pr-12 py-3 bg-white/60 backdrop-blur-sm focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all" 
-                />
-                <button 
-                  type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate hover:text-ink transition-colors focus:outline-none"
-                >
-                  {showConfirmPassword ? (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                  )}
+              <div>
+                <label className="block font-mono text-xs tracking-widest uppercase text-slate mb-2" htmlFor="confirmPassword">Confirm password</label>
+                <div className="relative">
+                  <input id="confirmPassword" name="confirmPassword" 
+                    type={showConfirmPassword ? "text" : "password"} 
+                    value={formData.confirmPassword} onChange={handleChange} required
+                    className="w-full border border-slate/20 rounded-xl pl-4 pr-12 py-3 bg-white/60 backdrop-blur-sm focus:outline-none focus:border-focus focus:ring-1 focus:ring-focus transition-all" 
+                  />
+                  <button 
+                    type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate hover:text-ink transition-colors focus:outline-none"
+                  >
+                    {showConfirmPassword ? (
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Bottom aligned action area inside the right column */}
+              <div className="mt-auto flex flex-col space-y-4 pt-2">
+                <div className="flex justify-center md:justify-start">
+                  <ReCAPTCHA ref={recaptchaRef} sitekey={RECAPTCHA_SITE_KEY} />
+                </div>
+                
+                {error && <p className="text-sm text-red-500 font-medium text-center md:text-left">{error}</p>}
+
+                <button type="submit" disabled={submitting || !emailVerified}
+                  className="w-full bg-ink text-paper rounded-full py-4 font-body font-medium hover:bg-focus hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:bg-ink">
+                  {submitting ? 'Creating account…' : 'Create account'}
                 </button>
+                
+                <p className="text-sm text-slate text-center md:text-left">
+                  Already have an account? <Link to="/login" className="text-ink font-medium hover:text-focus transition-colors">Sign in</Link>
+                </p>
               </div>
             </div>
 
-            <div className="flex justify-center pt-2">
-              <ReCAPTCHA ref={recaptchaRef} sitekey={RECAPTCHA_SITE_KEY} />
-            </div>
-
-            {error && <p className="text-sm text-red-500 font-medium text-center">{error}</p>}
-
-            <button type="submit" disabled={submitting || !emailVerified}
-              className="w-full bg-ink text-paper rounded-full py-4 font-body font-medium hover:bg-focus hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:bg-ink">
-              {submitting ? 'Creating account…' : 'Create account'}
-            </button>
           </form>
-
-          <p className="text-sm text-slate mt-8 text-center">
-            Already have an account? <Link to="/login" className="text-ink font-medium hover:text-focus transition-colors">Sign in</Link>
-          </p>
-
         </div>
       </div>
     </div>

@@ -3,7 +3,6 @@ import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import Documentation from './pages/Documentation';
-import ResearchAssistant from './components/ResearchAssistant';
 
 const LandingPage = lazy(() => import('./pages/LandingPage'))
 const Login = lazy(() => import('./pages/Login'))
@@ -31,7 +30,6 @@ function PublicOnlyRoute({ children }) {
 function App() {
   return (
     <BrowserRouter>
-      <ResearchAssistant />
       <Suspense fallback={<div className="min-h-screen bg-paper" />}>
         <Routes>
           <Route path="/" element={<PublicOnlyRoute><LandingPage /></PublicOnlyRoute>} />

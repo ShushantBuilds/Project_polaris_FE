@@ -49,29 +49,34 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col relative overflow-hidden text-ink font-body transition-colors duration-700">
+    // 1. Locked viewport height (h-screen) prevents the whole page from endlessly scrolling
+    <div className="h-screen bg-paper flex flex-col relative overflow-hidden text-ink font-body transition-colors duration-700">
       
       <div className="absolute inset-0 z-0 pointer-events-none">
          <div className="absolute top-1/4 right-1/4 w-[600px] h-[600px] bg-halo rounded-full mix-blend-multiply filter blur-[120px] opacity-70"></div>
       </div>
 
-      <div className="z-10 flex-1 flex items-center justify-center px-6 py-16">
-        <div className="w-full max-w-2xl bg-white/40 backdrop-blur-xl border border-slate/20 rounded-3xl p-8 md:p-12 shadow-sm">
+      <div className="z-10 flex-1 flex items-center justify-center px-6 py-10">
+        
+        {/* 2. Added flex-col and max-h-[90vh] so the card limits its own height */}
+        <div className="w-full max-w-3xl bg-white/40 backdrop-blur-xl border border-slate/20 rounded-3xl p-8 md:p-12 shadow-sm flex flex-col max-h-[90vh]">
           
-          <div className="text-center mb-10">
+          <div className="text-center mb-8 shrink-0">
             <h1 className="font-display text-4xl md:text-5xl mb-3 tracking-tight">Coming into focus</h1>
             <p className="text-slate font-body text-base leading-relaxed">
               Pick a few things you're into — your feed sharpens from here.
             </p>
           </div>
 
-          <div className="space-y-8">
+          {/* 3. The tags list now handles its own internal scrolling (overflow-y-auto) */}
+          <div className="space-y-8 overflow-y-auto pr-4 -mr-4 flex-1">
             {Object.entries(grouped).map(([category, categoryTags]) => (
               <div key={category}>
-                <h2 className="text-xs uppercase tracking-widest text-slate font-mono mb-4 border-b border-slate/10 pb-2">
+                <h2 className="text-xs uppercase tracking-widest text-slate font-mono mb-4 border-b border-slate/10 pb-2 text-left">
                   {CATEGORY_LABELS[category] || category}
                 </h2>
-                <div className="flex flex-wrap gap-2.5">
+                {/* 4. Enforced justify-start ensures tags left-align cleanly like a paragraph */}
+                <div className="flex flex-wrap gap-2.5 justify-start">
                   {categoryTags.map((tag) => {
                     const isSelected = selected.has(tag.id)
                     return (
@@ -92,9 +97,10 @@ export default function Onboarding() {
             ))}
           </div>
 
-          {mutation.isError && <p className="text-sm text-red-500 font-medium mt-6 text-center">Something went wrong — try again.</p>}
+          {mutation.isError && <p className="text-sm text-red-500 font-medium mt-4 shrink-0 text-center">Something went wrong — try again.</p>}
 
-          <div className="mt-12 flex flex-col items-center gap-4">
+          {/* 5. Footer actions stay pinned to the bottom of the card while you scroll tags */}
+          <div className="mt-8 shrink-0 flex flex-col items-center gap-4 pt-6 border-t border-slate/10">
             <button
               type="button" disabled={selected.size === 0 || mutation.isPending || !profile}
               onClick={() => mutation.mutate()}

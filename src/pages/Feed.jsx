@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react' // 1. Added useEffect
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { getRecommendations } from '../api/recommendations'
 import { searchContentItems, toggleInteraction, voteOnItem } from '../api/contentItems'
@@ -6,12 +6,14 @@ import { logInteraction } from '../api/interactions'
 import ContentCard from '../components/ContentCard'
 import ReadingModal from '../components/ReadingModal'
 import Navbar from '../components/Navbar'
+import AmbientBackground from '../components/AmbientBackground'
 
 export default function Feed() {
   const queryClient = useQueryClient()
   const [searchInput, setSearchInput] = useState('')
   const [activeQuery, setActiveQuery] = useState('')
   const [readingItem, setReadingItem] = useState(null)
+  const [isIngesting, setIsIngesting] = useState(false) // 2. Added ingestion state
   const isSearching = activeQuery.trim().length > 0
 
   const { data: recommendations, isLoading: recLoading, isError: recError } = useQuery({
@@ -35,6 +37,17 @@ export default function Feed() {
     queryFn: () => searchContentItems(activeQuery),
     enabled: isSearching,
   })
+
+  // 3. Added the timer to detect if search is taking long enough to be an OpenAlex fetch
+  useEffect(() => {
+    let timer;
+    if (searchLoading) {
+      timer = setTimeout(() => setIsIngesting(true), 1500); 
+    } else {
+      setIsIngesting(false);
+    }
+    return () => clearTimeout(timer);
+  }, [searchLoading]);
 
   const handleInteract = async (contentItemId, interactionType) => {
     try {
@@ -84,19 +97,15 @@ export default function Feed() {
     : (recommendations || [])
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col relative text-ink font-body">
+    <div className="min-h-screen bg-paper flex flex-col relative overflow-x-hidden text-ink font-body">
       
-      {/* Ambient Backgrounds */}
-      <div className="absolute inset-0 z-0 pointer-events-none fixed">
-         <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-halo rounded-full mix-blend-multiply filter blur-[120px] opacity-60"></div>
-         <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-focus rounded-full mix-blend-multiply filter blur-[120px] opacity-10"></div>
-      </div>
+      <AmbientBackground />
 
       <div className="z-20 relative">
         <Navbar />
       </div>
 
-      <main className="z-10 relative flex-1 max-w-6xl mx-auto px-6 py-10 w-full">
+      <main className="z-10 relative flex-1 w-full px-8 md:px-12 lg:px-16 py-10">
         <form onSubmit={handleSearchSubmit} className="mb-12 flex flex-col sm:flex-row gap-3 max-w-2xl">
           <div className="relative flex-1 group shadow-sm rounded-full">
             <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
@@ -107,7 +116,7 @@ export default function Feed() {
             <input
               type="text" value={searchInput} onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search across all fields..."
-              className="w-full border border-slate/20 rounded-full pl-12 pr-4 py-3 bg-white/60 backdrop-blur-sm text-base focus:outline-none focus:border-focus focus:bg-white transition-all"
+              className="w-full border border-slate/20 rounded-full pl-12 pr-4 py-3 bg-white text-base focus:outline-none focus:border-focus transition-all shadow-sm"
             />
           </div>
           <div className="flex gap-2 items-center">
@@ -128,10 +137,15 @@ export default function Feed() {
           </p>
         )}
 
+        {/* 4. Updated loading text to swap dynamically */}
         {isLoading && (
           <div className="flex items-center gap-3 mt-10">
             <div className="w-5 h-5 border-2 border-focus border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-slate font-mono text-sm uppercase tracking-widest">{isSearching ? 'Searching…' : 'Bringing your feed into focus…'}</p>
+            <p className="text-slate font-mono text-sm uppercase tracking-widest transition-all duration-300">
+              {isSearching 
+                ? (isIngesting ? 'Expanding Polaris index with live research…' : 'Searching…') 
+                : 'Bringing your feed into focus…'}
+            </p>
           </div>
         )}
         
@@ -144,7 +158,7 @@ export default function Feed() {
         )}
 
         {items.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 xl:gap-8">
             {items.map((item) => (
               <ContentCard
                 key={item.id} item={item} score={item.confidence_score} onInteract={handleInteract}

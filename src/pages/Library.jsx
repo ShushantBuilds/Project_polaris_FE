@@ -3,10 +3,14 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { getMyLibrary, toggleInteraction, voteOnItem } from '../api/contentItems'
 import ContentCard from '../components/ContentCard'
 import Navbar from '../components/Navbar'
+import AmbientBackground from '../components/AmbientBackground'
+import ReadingModal from '../components/ReadingModal'
 
 export default function Library() {
   const queryClient = useQueryClient()
   const [tab, setTab] = useState('liked')
+  const [readingItem, setReadingItem] = useState(null)
+  
   const { data, isLoading } = useQuery({ queryKey: ['myLibrary'], queryFn: getMyLibrary })
 
   const toggleMutation = useMutation({
@@ -19,20 +23,41 @@ export default function Library() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['myLibrary'] }),
   })
 
+  // Optimistic UI updates for the modal
+  const handleToggleLike = (id) => {
+    setReadingItem((prev) => (prev && prev.id === id ? { ...prev, is_liked: !prev.is_liked } : prev))
+    toggleMutation.mutate({ id, type: 'LIKE' })
+  }
+  
+  const handleToggleSave = (id) => {
+    setReadingItem((prev) => (prev && prev.id === id ? { ...prev, is_saved: !prev.is_saved } : prev))
+    toggleMutation.mutate({ id, type: 'SAVE' })
+  }
+  
+  const handleVote = (id, type) => {
+    setReadingItem((prev) => {
+      if (!prev || prev.id !== id) return prev
+      let { upvotes, downvotes, user_vote } = prev
+      if (user_vote === type) { user_vote = null; type === 'UPVOTE' ? upvotes-- : downvotes--; }
+      else if (user_vote) { user_vote === 'UPVOTE' ? upvotes-- : downvotes--; type === 'UPVOTE' ? upvotes++ : downvotes++; user_vote = type; }
+      else { type === 'UPVOTE' ? upvotes++ : downvotes++; user_vote = type; }
+      return { ...prev, upvotes, downvotes, user_vote }
+    })
+    voteMutation.mutate({ id, type })
+  }
+
   const items = tab === 'liked' ? data?.liked : data?.saved
 
   return (
-    <div className="min-h-screen bg-paper flex flex-col relative text-ink font-body">
+    <div className="min-h-screen bg-paper flex flex-col relative overflow-x-hidden text-ink font-body">
       
-      <div className="absolute inset-0 z-0 pointer-events-none fixed">
-         <div className="absolute top-1/4 left-1/3 w-[600px] h-[600px] bg-halo rounded-full mix-blend-multiply filter blur-[120px] opacity-50"></div>
-      </div>
+      <AmbientBackground />
       
       <div className="z-20 relative">
         <Navbar />
       </div>
       
-      <main className="z-10 relative flex-1 max-w-6xl mx-auto px-6 py-12 w-full">
+      <main className="z-10 relative flex-1 w-full px-8 md:px-12 lg:px-16 py-10">
         <h1 className="font-display text-4xl mb-8 tracking-tight">Your library</h1>
         
         <div className="flex gap-8 mb-10 border-b border-slate/15">
@@ -58,23 +83,37 @@ export default function Library() {
         )}
         
         {!isLoading && items?.length === 0 && (
-          <div className="py-10">
+          <div className="py-16 text-center bg-white/40 backdrop-blur-xl border border-slate/20 rounded-3xl max-w-2xl shadow-sm">
             <span className="text-4xl block mb-4">📚</span>
-            <p className="text-slate text-lg">Nothing here yet.</p>
+            <h3 className="font-display text-2xl mb-2 text-ink">Nothing here yet</h3>
+            <p className="text-slate text-sm">Papers you {tab === 'liked' ? 'like' : 'save'} will appear here for easy access.</p>
           </div>
         )}
         
         {items?.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {items.map((item) => (
-              <ContentCard key={item.id} item={item} score={1}
-                onToggleLike={(id) => toggleMutation.mutate({ id, type: 'LIKE' })}
-                onToggleSave={(id) => toggleMutation.mutate({ id, type: 'SAVE' })}
-                onVote={(id, type) => voteMutation.mutate({ id, type })} />
+              <ContentCard 
+                key={item.id} 
+                item={item} 
+                score={1}
+                onOpen={setReadingItem}
+                onToggleLike={handleToggleLike}
+                onToggleSave={handleToggleSave}
+                onVote={handleVote} 
+              />
             ))}
           </div>
         )}
       </main>
+
+      <ReadingModal
+        item={readingItem}
+        onClose={() => setReadingItem(null)}
+        onToggleLike={handleToggleLike}
+        onToggleSave={handleToggleSave}
+        onVote={handleVote}
+      />
     </div>
   )
 }

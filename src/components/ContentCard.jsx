@@ -7,7 +7,6 @@ export default function ContentCard({ item, score, onInteract, onToggleLike, onT
   const navigate = useNavigate()
   const [hovered, setHovered] = useState(false)
 
-  const blurPx = hovered ? 0 : (1 - score) * 4
   const cardOpacity = hovered ? 1 : 0.5 + score * 0.5
 
   const requireAuth = (action) => (e) => {
@@ -26,12 +25,12 @@ export default function ContentCard({ item, score, onInteract, onToggleLike, onT
     <div
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       onClick={handleOpen}
-      style={{ filter: `blur(${blurPx}px)`, opacity: cardOpacity }}
-      className="group cursor-pointer flex flex-col h-full border border-slate/20 rounded-3xl p-6 md:p-8 bg-white/40 backdrop-blur-xl transition-all duration-500 hover:border-focus/40 hover:shadow-lg hover:-translate-y-1"
+      style={{ opacity: cardOpacity }}
+      className="group cursor-pointer flex flex-col h-full border border-slate/20 rounded-3xl p-6 md:p-8 bg-white transition-all duration-500 hover:border-focus/40 hover:shadow-lg hover:-translate-y-1"
     >
       <div className="flex flex-wrap gap-2 mb-4">
         {item.tags.map((tag, index) => (
-          <span key={tag.id || `tag-${index}`} className="px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase border bg-white/60 border-slate/20 text-slate">
+          <span key={tag.id || `tag-${index}`} className="px-3 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase border bg-white border-slate/20 text-slate">
             {tag.name || tag}
           </span>
         ))}

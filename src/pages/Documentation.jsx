@@ -13,25 +13,28 @@ const TOC_SECTIONS = [
   { id: 'database-schema', title: '9. Database Schema' },
 ];
 
-const architectureText = `┌─────────────────┐      HTTPS/JSON       ┌──────────────────────┐
-│   React (Vite)  │◄─────────────────────►│   Django REST API    │
-│ Tailwind CSS v4 │                       │ (JWT-authenticated)  │
-└─────────────────┘                       └──────────┬───────────┘
-                                                     │
-                      ┌──────────────────────────────┼──────────────────────────────┐
-                      │                              │                              │
-             ┌────────▼────────┐          ┌──────────▼──────────┐          ┌────────▼────────┐
-             │   PostgreSQL    │          │  Recommendation     │          │  Background     │
-             │  (Docker)       │          │  Engine (tiered)    │          │  Scheduler      │
-             │  + full-text    │          │  + local embeddings │          │  (apscheduler)  │
-             │    search index │          └─────────────────────┘          └────────┬────────┘
-             └─────────────────┘                                                    │
-                                                                         ┌──────────┴──────────┐
-                                                                         │                     │
-                                                                ┌────────▼───────┐    ┌────────▼─────────┐
-                                                                │  OpenAlex API  │    │  Mistral AI API  │
-                                                                │ (paper ingest) │    │ (metadata enrich)│
-                                                                └────────────────┘    └──────────────────┘`;
+const architectureText = `+---------------------+                           +---------------------+
+|     React (Vite)    |         HTTPS/JSON        |   Django REST API   |
+|   Tailwind CSS v4   |<------------------------->| (JWT-authenticated) |
++---------------------+                           +---------------------+
+                                                             |
+           +------------------------+------------------------+
+           |                        |                        |
+           v                        v                        v
++---------------------+  +---------------------+  +---------------------+
+|      PostgreSQL     |  |    Recommendation   |  |      Background     |
+|       (Docker)      |  |   Engine (tiered)   |  |      Scheduler      |
+|     + full-text     |  |  + local embeddings |  |    (apscheduler)    |
+|     search index    |  |                     |  |                     |
++---------------------+  +---------------------+  +---------------------+
+                                                             |
+                                      +----------------------+
+                                      |                      |
+                                      v                      v
+                            +-------------------+  +-------------------+
+                            |    OpenAlex API   |  |   Mistral AI API  |
+                            |   (paper ingest)  |  | (metadata enrich) |
+                            +-------------------+  +-------------------+`;
 
 export default function Documentation() {
   // Feature 1: Scrollspy State
@@ -253,7 +256,7 @@ export default function Documentation() {
                 >
                   {copiedText ? '✓ Copied!' : 'Copy'}
                 </button>
-                <pre>{architectureText}</pre>
+                <pre className="whitespace-pre leading-snug" style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace', fontVariantLigatures: 'none' }}>{architectureText}</pre>
               </div>
             </section>
 
