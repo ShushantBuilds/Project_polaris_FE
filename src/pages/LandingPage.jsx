@@ -5,6 +5,7 @@ import { searchContentItems, getDailySearchSuggestions, toggleInteraction, voteO
 import ContentCard from '../components/ContentCard';
 import ReadingModal from '../components/ReadingModal';
 import ResearchAssistant from '../components/ResearchAssistant';
+import { X } from 'lucide-react';
 
 const FALLBACK_SUGGESTIONS = ['Transformer Models', 'CRISPR-Cas9', 'Quantum Cryptography', 'Behavioral Economics'];
 
@@ -12,6 +13,7 @@ export default function LandingPage() {
   const [searchInput, setSearchInput] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
   const [readingItem, setReadingItem] = useState(null);
+  const [isResultsWindowOpen, setIsResultsWindowOpen] = useState(false);
   const canvasRef = useRef(null); 
 
   const { data: dailySuggestions } = useQuery({
@@ -49,12 +51,26 @@ export default function LandingPage() {
 
   const handleSearch = (e) => { 
     e.preventDefault(); 
-    setActiveQuery(searchInput.trim()); 
+    if (searchInput.trim()) {
+      setActiveQuery(searchInput.trim()); 
+      setIsResultsWindowOpen(true);
+    }
   };
 
   const executeQuickSearch = (term) => {
     setSearchInput(term);
     setActiveQuery(term);
+    setIsResultsWindowOpen(true);
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput('');
+    setActiveQuery('');
+    setIsResultsWindowOpen(false);
+  };
+
+  const handleCloseResults = () => {
+    setIsResultsWindowOpen(false);
   };
 
   useEffect(() => {
@@ -157,10 +173,8 @@ export default function LandingPage() {
   }, []);
 
   return (
-    // FIX 1: overflow-x-hidden completely restores native vertical scrolling while preventing horizontal stretch
     <div className="min-h-screen bg-paper flex flex-col relative overflow-x-hidden text-ink font-body">
       
-      {/* FIX 2: Canvas and Glows are locked to the camera (fixed) so they never end abruptly */}
       <canvas 
         ref={canvasRef} 
         className="fixed inset-0 z-0 pointer-events-none" 
@@ -184,10 +198,8 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Main container naturally pads downward */}
       <main className="z-10 flex-1 flex flex-col items-center pt-[10vh] px-6 w-full max-w-6xl mx-auto pb-20"> 
         
-        {/* FIX 3: Static, permanent header that never hides */}
         <div className="text-center mb-10 w-full relative">
            <span className="font-mono text-xs tracking-widest text-slate uppercase mb-6 block">
              Open Academic Index
@@ -208,8 +220,20 @@ export default function LandingPage() {
             value={searchInput} 
             onChange={(e) => setSearchInput(e.target.value)} 
             placeholder="Search by topic, methodology, or keyword..."
-            className="w-full border-2 border-slate/20 rounded-full pl-16 pr-36 py-5 bg-white/80 backdrop-blur-md text-lg focus:outline-none focus:border-focus focus:bg-white transition-all shadow-inner" 
+            className="w-full border-2 border-slate/20 rounded-full pl-16 pr-48 py-5 bg-white/80 backdrop-blur-md text-lg focus:outline-none focus:border-focus focus:bg-white transition-all shadow-inner" 
           />
+          
+          {searchInput && (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              className="absolute right-36 top-1/2 -translate-y-1/2 text-slate hover:text-ink p-2 rounded-full hover:bg-slate/10 transition-colors"
+              aria-label="Clear search"
+            >
+              <X size={20} />
+            </button>
+          )}
+
           <button 
             type="submit" 
             disabled={!searchInput.trim()}
@@ -219,7 +243,7 @@ export default function LandingPage() {
           </button>
         </form>
 
-        {!activeQuery && !isLoading && (
+        {!isResultsWindowOpen && (
           <div className="flex flex-wrap justify-center items-center gap-3 animate-fade-in z-20 relative">
              <span className="font-mono text-xs text-slate uppercase tracking-widest mr-2">Try searching:</span>
              {suggestions.map(term => (
@@ -233,59 +257,6 @@ export default function LandingPage() {
              ))}
           </div>
         )}
-
-        {/* Results grid dynamically expands page height, allowing native smooth scrolling */}
-        <div className="w-full mt-8 relative z-20">
-          
-          {isLoading && (
-            <div className="flex flex-col items-center justify-center space-y-4 mt-10">
-               <div className="w-8 h-8 border-2 border-focus border-t-transparent rounded-full animate-spin"></div>
-               <p className="text-slate font-mono text-sm uppercase tracking-widest">Querying database…</p>
-            </div>
-          )}
-          
-          {isError && (
-             <div className="p-6 bg-red-50 text-red-700 border border-red-200 rounded-xl text-center max-w-2xl mx-auto backdrop-blur-sm">
-                 <p className="font-medium mb-1">Search connection failed.</p>
-                 <p className="text-sm opacity-80">Please check your network connection or try again later.</p>
-             </div>
-          )}
-          
-          {activeQuery && !isLoading && results?.length === 0 && (
-            <div className="text-center py-10 bg-white/50 backdrop-blur-sm rounded-3xl border border-slate/10 max-w-3xl mx-auto">
-               <span className="text-4xl block mb-4">📭</span>
-               <p className="text-slate text-lg">No matches found for <span className="font-medium text-ink">"{activeQuery}"</span>.</p>
-               <p className="text-slate text-sm mt-2">Try adjusting your keywords or using broader terms.</p>
-            </div>
-          )}
-          
-          {results?.length > 0 && (
-            <div className="animate-fade-in">
-              <div className="flex items-center justify-between border-b border-slate/20 pb-3 mb-6 bg-white/50 backdrop-blur-md p-4 rounded-xl">
-                 <p className="text-sm text-slate font-mono uppercase tracking-widest">
-                   Search Results
-                 </p>
-                 <p className="text-sm text-slate">
-                   Found <span className="font-medium text-ink">{results.length}</span> papers
-                 </p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {results.map((item) => (
-                  <ContentCard 
-                    key={item.id} 
-                    item={item} 
-                    score={1} 
-                    onOpen={setReadingItem}
-                    onToggleLike={handleToggleLike}
-                    onToggleSave={handleToggleSave}
-                    onVote={handleVote}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
       </main>
 
       <footer className="z-20 w-full px-8 py-6 border-t border-slate/10 flex flex-col md:flex-row items-center justify-between text-slate font-mono text-xs uppercase tracking-wide bg-white/50 backdrop-blur-md mt-auto">
@@ -299,6 +270,78 @@ export default function LandingPage() {
           </span>
         </div>
       </footer>
+
+      {isResultsWindowOpen && (
+        <div className="fixed inset-0 z-40 flex justify-center pt-[20vh] px-4 pb-4 bg-paper/30 backdrop-blur-sm animate-fade-in overflow-hidden">
+          <div className="w-full max-w-6xl bg-white/70 backdrop-blur-xl border border-slate/20 rounded-t-3xl shadow-2xl flex flex-col overflow-hidden animate-slide-up h-full">
+            
+            <div className="flex items-center justify-between px-8 py-4 border-b border-slate/20 bg-white/50">
+              <div>
+                <p className="text-sm text-slate font-mono uppercase tracking-widest">
+                  Search Results
+                </p>
+                <h2 className="text-xl font-medium text-ink mt-1 truncate max-w-xl">
+                  {activeQuery}
+                </h2>
+              </div>
+              
+              <div className="flex items-center gap-6">
+                {!isLoading && !isError && results && (
+                  <p className="text-sm text-slate hidden md:block">
+                    Found <span className="font-medium text-ink">{results.length}</span> papers
+                  </p>
+                )}
+                <button 
+                  onClick={handleCloseResults}
+                  className="p-2 rounded-full hover:bg-slate/10 text-slate hover:text-ink transition-colors flex items-center justify-center border border-transparent hover:border-slate/20"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar relative">
+              {isLoading && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4">
+                  <div className="w-8 h-8 border-2 border-focus border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-slate font-mono text-sm uppercase tracking-widest">Querying database…</p>
+                </div>
+              )}
+              
+              {isError && (
+                <div className="p-6 bg-red-50 text-red-700 border border-red-200 rounded-xl text-center max-w-2xl mx-auto mt-10">
+                  <p className="font-medium mb-1">Search connection failed.</p>
+                  <p className="text-sm opacity-80">Please check your network connection or try again later.</p>
+                </div>
+              )}
+              
+              {!isLoading && results?.length === 0 && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-4xl block mb-4">📭</span>
+                  <p className="text-slate text-lg">No matches found for <span className="font-medium text-ink">"{activeQuery}"</span>.</p>
+                  <p className="text-slate text-sm mt-2">Try adjusting your keywords or using broader terms.</p>
+                </div>
+              )}
+              
+              {!isLoading && results?.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in pb-12">
+                  {results.map((item) => (
+                    <ContentCard 
+                      key={item.id} 
+                      item={item} 
+                      score={1} 
+                      onOpen={setReadingItem}
+                      onToggleLike={handleToggleLike}
+                      onToggleSave={handleToggleSave}
+                      onVote={handleVote}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       
       <ReadingModal
         item={readingItem}
@@ -308,7 +351,9 @@ export default function LandingPage() {
         onVote={handleVote}
       />
 
-      <ResearchAssistant />
+      <div className={isResultsWindowOpen ? "z-50 relative" : ""}>
+        <ResearchAssistant />
+      </div>
 
     </div>
   );
